@@ -6,14 +6,15 @@ import static com.psp.flappybird.FlappyBird.SCREEN_WIDTH;
 import java.util.Random;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
 
-class Pipe {
+class Pipe extends GameObject {
 
   private static final int Y_GAP_BETWEEN_PIPES = 180;
   private static final int PIPE_LOWE_Y_BOUNDARY = 300;
+  private static final int PIPE_UPPER_Y_BOUNDARY = -250;
   private static final int PIPE_WIDTH = 100;
   private static final double PIPE_SPEED = 2.0;
-  private static final int PIPE_UPPER_Y_BOUNDARY = -250;
 
   private final ImageView topPipe;
   private final ImageView bottomPipe;
@@ -21,20 +22,27 @@ class Pipe {
   public Pipe(Image topPipeImage, Image bottomPipeImage, int pipeOffsetX) {
     topPipe = new ImageView(topPipeImage);
     bottomPipe = new ImageView(bottomPipeImage);
-    resetPipePosition(pipeOffsetX);
+    reset(pipeOffsetX);
   }
 
-  public void move() {
+  @Override
+  public void addToPane(Pane pane) {
+    pane.getChildren().addAll(topPipe, bottomPipe);
+  }
+
+  @Override
+  public void update(int frameCounter) {
     topPipe.setX(topPipe.getX() - PIPE_SPEED);
     bottomPipe.setX(bottomPipe.getX() - PIPE_SPEED);
   }
 
-  public void resetPipePosition(int initialX) {
+  @Override
+  public void reset(double xCoordinate) {
     Random random = new Random();
     double randomY = PIPE_LOWE_Y_BOUNDARY + random.nextDouble() * PIPE_UPPER_Y_BOUNDARY;
 
-    topPipe.setX(SCREEN_WIDTH + initialX);
-    bottomPipe.setX(SCREEN_WIDTH + initialX);
+    topPipe.setX(SCREEN_WIDTH + xCoordinate);
+    bottomPipe.setX(SCREEN_WIDTH + xCoordinate);
 
     topPipe.setY(randomY - topPipe.getImage().getHeight());
     bottomPipe.setY(randomY + Y_GAP_BETWEEN_PIPES);

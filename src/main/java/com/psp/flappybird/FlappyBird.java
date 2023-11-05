@@ -18,19 +18,23 @@ import javafx.util.Duration;
 
 public class FlappyBird extends Application {
 
+  private static final String TITLE = "Flappy Bird";
   static final int SCREEN_WIDTH = 485;
   static final int SCREEN_HEIGHT = 645;
-  private static final String TITLE = "Flappy Bird";
-  private static final int X_PIPE_SPACING = 300;
   private boolean gameStarted = false;
+
+  private static final double KEY_FRAME_DURATION = 11;
+
+  private static final int FIRST_PIPE_CORD_X = 0;
+  private static final int SECOND_PIPE_CORD_X = 300;
+  private static final int FIRST_FLOOR_CORD_X = 0;
+  private static final int SECOND_FLOOR_CORD_X = 500;
 
   private Pipe pipe1;
   private Pipe pipe2;
   private Floor floor1;
   private Floor floor2;
-  private Image floorImage;
   private Bird bird;
-
 
   @Override
   public void start(Stage primaryStage) {
@@ -42,9 +46,9 @@ public class FlappyBird extends Application {
 
     final int[] frameCounter = {0};
 
-    Timeline timeline = new Timeline(new KeyFrame(Duration.millis(11), event -> {
+    Timeline timeline = new Timeline(new KeyFrame(Duration.millis(KEY_FRAME_DURATION), event -> {
       if (gameStarted) {
-        updateGameObjects(floor1, floor2, floorImage, pipe1, pipe2, bird, frameCounter);
+        updateGameObjects(floor1, floor2, pipe1, pipe2, bird, frameCounter);
         frameCounter[0]++;
       }
 
@@ -67,29 +71,21 @@ public class FlappyBird extends Application {
     createBird(root);
   }
 
-  private void updateGameObjects(Floor floor1, Floor floor2, Image floorImage, Pipe pipe1,
-      Pipe pipe2,
-      Bird bird, int[] frameCounter) {
-    updatePipes(pipe1, pipe2);
-    updateFloor(floor1, floor2, floorImage);
-    updateBird(bird, frameCounter);
+  private void updateGameObjects(Floor floor1, Floor floor2, Pipe pipe1, Pipe pipe2, Bird bird,
+      int[] frameCounter) {
+    updatePipes(pipe1, pipe2, frameCounter[0]);
+    updateFloor(floor1, floor2, frameCounter[0]);
+    updateBird(bird, frameCounter[0]);
     endGameIfBirdCrashed(bird, pipe1, pipe2);
   }
 
-  private void defineGameControls(Scene scene, Bird bird, int[] frameCounter) {
-    scene.setOnMouseClicked(event -> {
-      if (!gameStarted) {
-        gameStarted = true;
-      }
-      bird.flap(frameCounter[0]);
-    });
-
-    scene.setOnKeyPressed(event -> {
-      if (event.getCode() == KeyCode.SPACE && !gameStarted) {
-        gameStarted = true;
-      }
-      bird.flap(frameCounter[0]);
-    });
+  private void resetGame() {
+    gameStarted = false;
+    bird.reset(0);
+    pipe1.reset(FIRST_PIPE_CORD_X);
+    pipe2.reset(SECOND_PIPE_CORD_X);
+    floor1.reset(FIRST_FLOOR_CORD_X);
+    floor2.reset(SECOND_FLOOR_CORD_X);
   }
 
   private static void createBackground(Pane root) {
@@ -109,46 +105,61 @@ public class FlappyBird extends Application {
     Image bottomPipeImage = new Image("images/up_pipe_cropped.png");
 
     pipe1 = new Pipe(topPipeImage, bottomPipeImage, SCREEN_WIDTH);
-    pipe2 = new Pipe(topPipeImage, bottomPipeImage, SCREEN_WIDTH + X_PIPE_SPACING);
+    pipe2 = new Pipe(topPipeImage, bottomPipeImage, SCREEN_WIDTH + SECOND_PIPE_CORD_X);
 
-    root.getChildren().addAll(pipe1.getTopPipe(), pipe1.getBottomPipe(), pipe2.getTopPipe(),
-        pipe2.getBottomPipe());
+    pipe1.addToPane(root);
+    pipe2.addToPane(root);
   }
 
   private void createFloor(Pane root) {
-    floorImage = new Image("images/floor_cropped_v2.png");
+    Image floorImage = new Image("images/floor_cropped_v2.png");
 
-    floor1 = new Floor(floorImage, 0);
-    floor2 = new Floor(floorImage, floor1.getFloor().getX() + floorImage.getWidth());
+    floor1 = new Floor(floorImage, FIRST_FLOOR_CORD_X);
+    floor2 = new Floor(floorImage, SECOND_FLOOR_CORD_X);
 
-    root.getChildren().addAll(floor1.getFloor(), floor2.getFloor());
+    floor1.addToPane(root);
+    floor2.addToPane(root);
   }
 
   private void createBird(Pane root) {
     bird = new Bird();
-    root.getChildren().add(bird.getBird());
+    bird.addToPane(root);
   }
 
-  private static void updateBird(Bird bird, int[] frameCounter) {
-    bird.move();
-    bird.updateBirdFlapAnimation(frameCounter[0]);
-    bird.updateBirdRotationAnimation(frameCounter[0]);
+  private void defineGameControls(Scene scene, Bird bird, int[] frameCounter) {
+    scene.setOnMouseClicked(event -> {
+      if (!gameStarted) {
+        gameStarted = true;
+      }
+      bird.flap(frameCounter[0]);
+    });
+
+    scene.setOnKeyPressed(event -> {
+      if (event.getCode() == KeyCode.SPACE && !gameStarted) {
+        gameStarted = true;
+      }
+      bird.flap(frameCounter[0]);
+    });
   }
 
-  private static void updatePipes(Pipe pipe1, Pipe pipe2) {
-    pipe1.move();
-    pipe2.move();
+  private static void updateBird(Bird bird, int frameCounter) {
+    bird.update(frameCounter);
+  }
+
+  private static void updatePipes(Pipe pipe1, Pipe pipe2, int frameCounter) {
+    pipe1.update(frameCounter);
+    pipe2.update(frameCounter);
 
     resetPipeIfOutOfScreen(pipe1);
     resetPipeIfOutOfScreen(pipe2);
   }
 
-  private static void updateFloor(Floor floor1, Floor floor2, Image floorImage) {
-    floor1.move();
-    floor2.move();
+  private static void updateFloor(Floor floor1, Floor floor2, int frameCounter) {
+    floor1.update(frameCounter);
+    floor2.update(frameCounter);
 
-    resetFloorIfOutOfScreen(floor1, floor2, floorImage);
-    resetFloorIfOutOfScreen(floor2, floor1, floorImage);
+    resetFloorIfOutOfScreen(floor1, floor2);
+    resetFloorIfOutOfScreen(floor2, floor1);
   }
 
   private void endGameIfBirdCrashed(Bird bird, Pipe pipe1, Pipe pipe2) {
@@ -156,7 +167,7 @@ public class FlappyBird extends Application {
     bird.getBird().setRotate(0);
 
     if (birdHitPipe(bird, pipe1, pipe2) || birdHitFloor(bird)) {
-      onBirdCrash(bird, pipe1, pipe2);
+      resetGame();
     }
     bird.getBird().setRotate(originalBirdRotation);
   }
@@ -169,25 +180,18 @@ public class FlappyBird extends Application {
   }
 
   private boolean birdHitFloor(Bird bird) {
-    return bird.getBird().getY() + bird.getBird().getFitHeight() >= Floor.FLOOR_Y;
+    return bird.getBird().getY() + bird.getBird().getFitHeight() >= Floor.FLOOR_Y_CORD;
   }
 
-  private void onBirdCrash(Bird bird, Pipe pipe1, Pipe pipe2) {
-    gameStarted = false;
-    bird.resetPosition();
-    pipe1.resetPipePosition(0);
-    pipe2.resetPipePosition(X_PIPE_SPACING);
-  }
-
-  private static void resetFloorIfOutOfScreen(Floor floor1, Floor floor2, Image floorImage) {
+  private static void resetFloorIfOutOfScreen(Floor floor1, Floor floor2) {
     if (floor1.isFloorOffScreen()) {
-      floor1.resetFloorPosition(floor2.getFloor().getX() + floorImage.getWidth());
+      floor1.reset(floor2.getFloor().getX() + floor1.getFloor().getImage().getWidth());
     }
   }
 
   private static void resetPipeIfOutOfScreen(Pipe pipe) {
     if (pipe.isPipeOffScreen()) {
-      pipe.resetPipePosition(0);
+      pipe.reset(0);
     }
   }
 

@@ -4,26 +4,34 @@ import static com.psp.flappybird.FlappyBird.SCREEN_HEIGHT;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
 
-public class Floor {
+public class Floor extends GameObject {
 
-  public static final int FLOOR_Y = SCREEN_HEIGHT - 87;
+  public static final int FLOOR_Y_CORD = SCREEN_HEIGHT - 87;
   private static final double FLOOR_SPEED = 2.0;
 
   private final ImageView floor;
 
-  public Floor(Image floorImage, double floorOffsetX) {
+  public Floor(Image floorImage, int xCoordinate) {
     floor = new ImageView(floorImage);
-    resetFloorPosition(floorOffsetX);
+    reset(xCoordinate);
   }
 
-  public void resetFloorPosition(double floorOffSet) {
-    floor.setX(floorOffSet);
-    floor.setY(SCREEN_HEIGHT - floor.getImage().getHeight());
+  @Override
+  public void addToPane(Pane pane) {
+    pane.getChildren().add(floor);
   }
 
-  public void move() {
+  @Override
+  public void update(int frameCounter) {
     floor.setX(floor.getX() - FLOOR_SPEED);
+  }
+
+  @Override
+  public void reset(double xCoordinate) {
+    floor.setX(xCoordinate);
+    floor.setY(SCREEN_HEIGHT - floor.getImage().getHeight());
   }
 
   public boolean isFloorOffScreen() {
@@ -33,4 +41,5 @@ public class Floor {
   public ImageView getFloor() {
     return floor;
   }
+
 }

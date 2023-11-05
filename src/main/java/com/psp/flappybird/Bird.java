@@ -5,15 +5,22 @@ import static com.psp.flappybird.FlappyBird.SCREEN_WIDTH;
 
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Pane;
 
-public class Bird {
+public class Bird extends GameObject {
 
   private static final int BIRD_WIDTH = 65;
   private static final int BIRD_HEIGHT = 45;
   private static final double GRAVITY = 0.3;
   private static final double FLAP_STRENGTH = -8.0;
   private static final int BIRD_X_OFFSET_FROM_CENTER = 35;
-
+  private static final int FLAP_ANIMATION_FRAME_INTERVAL = 8;
+  private static final int TIME_BEFORE_ROTATE_DOWN = 45;
+  private static final double MAX_BIRD_VELOCITY_FOR_ROTATION = 10;
+  private static final double BIRD_VELOCITY_RANGE_FOR_ROTATION = 20;
+  private static final double MIN_ROTATION_ANGLE = -30;
+  private static final double MAX_ROTATION_ANGLE = 90;
+  private static final double ROTATION_INTERPOLATION_FACTOR = 0.05;
 
   private final ImageView bird;
   private final Image[] birdImages = new Image[3];
@@ -28,9 +35,28 @@ public class Bird {
     bird = new ImageView(birdImages[0]);
     bird.setFitWidth(BIRD_WIDTH);
     bird.setFitHeight(BIRD_HEIGHT);
-    setBirdVelocity(0);
-    setLastFlapTime(0);
-    resetPosition();
+    reset(0);
+  }
+
+  @Override
+  public void addToPane(Pane pane) {
+    pane.getChildren().add(bird);
+  }
+
+  @Override
+  public void update(int frameCounter) {
+    updateFallAnimation();
+    updateFlapAnimation(frameCounter);
+    updateRotationAnimation(frameCounter);
+  }
+
+  @Override
+  public void reset(double xCoordinate) {
+    bird.setX((SCREEN_WIDTH / 2.0 - bird.getFitWidth() / 2.0) - BIRD_X_OFFSET_FROM_CENTER);
+    bird.setY(SCREEN_HEIGHT / 2.0 - bird.getFitHeight() / 2.0);
+    bird.setRotate(0);
+    birdVelocity = 0;
+    lastFlapTime = 0;
   }
 
   public ImageView getBird() {
@@ -40,53 +66,38 @@ public class Bird {
   public void flap(double frameCounter) {
     birdVelocity = FLAP_STRENGTH;
     lastFlapTime = frameCounter;
-    bird.setRotate(-30);
+    bird.setRotate(MIN_ROTATION_ANGLE);
   }
 
-  public void move() {
+  private void updateFallAnimation() {
     birdVelocity += GRAVITY;
     bird.setY(bird.getY() + birdVelocity);
   }
 
-  public void resetPosition() {
-    bird.setX(
-        (SCREEN_WIDTH / 2.0 - bird.getFitWidth() / 2.0)
-            - BIRD_X_OFFSET_FROM_CENTER);
-    bird.setY(SCREEN_HEIGHT / 2.0 - bird.getFitHeight() / 2.0);
-    bird.setRotate(0);
-    birdVelocity = 0;
-  }
-
-  public void updateBirdFlapAnimation(int frameCounter) {
-    if (frameCounter % 8 == 0) {
-      bird.setImage(birdImages[(frameCounter / 8) % birdImages.length]);
+  public void updateFlapAnimation(int frameCounter) {
+    if (frameCounter % FLAP_ANIMATION_FRAME_INTERVAL == 0) {
+      bird.setImage(birdImages[(frameCounter / FLAP_ANIMATION_FRAME_INTERVAL) % birdImages.length]);
     }
   }
 
-  public void updateBirdRotationAnimation(double frameCounter) {
+  public void updateRotationAnimation(double frameCounter) {
     double desiredRotation;
     double timeSinceLastFlap = frameCounter - lastFlapTime;
-    if (timeSinceLastFlap < 45) {
-      desiredRotation = -30;
+    if (timeSinceLastFlap < TIME_BEFORE_ROTATE_DOWN) {
+      desiredRotation = MIN_ROTATION_ANGLE;
     } else {
-      double t = Math.min(Math.max((birdVelocity + 10) / 20, 0), 1);
-      desiredRotation = lerp(-30, 90, t);
+      double t = Math.min(Math.max(
+              (birdVelocity + MAX_BIRD_VELOCITY_FOR_ROTATION) / BIRD_VELOCITY_RANGE_FOR_ROTATION, 0),
+          1);
+      desiredRotation = interpolateBetweenValues(MIN_ROTATION_ANGLE, MAX_ROTATION_ANGLE, t);
     }
     double currentRotation = bird.getRotate();
-    double newRotation = lerp(currentRotation, desiredRotation, 0.1);
+    double newRotation = interpolateBetweenValues(currentRotation, desiredRotation,
+        ROTATION_INTERPOLATION_FACTOR);
     bird.setRotate(newRotation);
   }
 
-  private double lerp(double a, double b, double t) {
-    return a + t * (b - a);
+  private double interpolateBetweenValues(double startValue, double endValue, double weight) {
+    return startValue + weight * (endValue - startValue);
   }
-
-  public void setLastFlapTime(double lastFlapTime) {
-    this.lastFlapTime = lastFlapTime;
-  }
-
-  public void setBirdVelocity(double birdVelocity) {
-    this.birdVelocity = birdVelocity;
-  }
-
 }
