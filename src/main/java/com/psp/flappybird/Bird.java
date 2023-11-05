@@ -43,7 +43,7 @@ public class Bird {
     bird.setRotate(-30);
   }
 
-  public void fall() {
+  public void move() {
     birdVelocity += GRAVITY;
     bird.setY(bird.getY() + birdVelocity);
   }
