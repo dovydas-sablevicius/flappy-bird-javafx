@@ -3,6 +3,7 @@ package com.psp.flappybird;
 import static com.psp.flappybird.FlappyBird.SCREEN_HEIGHT;
 import static com.psp.flappybird.FlappyBird.SCREEN_WIDTH;
 
+import java.util.Objects;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
@@ -30,9 +31,13 @@ public class Bird extends GameObject {
   protected static final int BIRD_HEIGHT = 42;
 
   public Bird() {
-    birdImages[0] = new Image("images/bird1.png");
-    birdImages[1] = new Image("images/bird2.png");
-    birdImages[2] = new Image("images/bird3.png");
+    birdImages[0] = new Image(
+        Objects.requireNonNull(getClass().getResourceAsStream("/images/bird1.png")));
+    birdImages[1] = new Image(
+        Objects.requireNonNull(getClass().getResourceAsStream("/images/bird2.png")));
+    birdImages[2] = new Image(
+        Objects.requireNonNull(getClass().getResourceAsStream("/images/bird3.png")));
+
     bird = new ImageView(birdImages[0]);
     bird.setFitWidth(BIRD_WIDTH);
     bird.setFitHeight(BIRD_HEIGHT);
@@ -100,5 +105,9 @@ public class Bird extends GameObject {
 
   private double interpolateBetweenValues(double startValue, double endValue, double weight) {
     return startValue + weight * (endValue - startValue);
+  }
+
+  public double getBirdVelocity() {
+    return birdVelocity;
   }
 }
