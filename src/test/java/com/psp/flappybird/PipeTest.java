@@ -21,12 +21,10 @@ public class PipeTest {
     pipe = new Pipe(topPipeImage, bottomPipeImage, 0);
   }
 
-
   @Test
   public void pipeShouldNotBeNullWhenCreated() {
     assertNotNull(pipe);
   }
-
 
   @Test
   public void pipeShouldBeAtTheScreenWidthWhenReset() {
