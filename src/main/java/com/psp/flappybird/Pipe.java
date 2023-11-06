@@ -13,7 +13,7 @@ class Pipe extends GameObject {
   private static final int Y_GAP_BETWEEN_PIPES = 180;
   private static final int PIPE_LOWE_Y_BOUNDARY = 300;
   private static final int PIPE_UPPER_Y_BOUNDARY = -250;
-  private static final int PIPE_WIDTH = 100;
+  protected static final int PIPE_WIDTH = 100;
   private static final double PIPE_SPEED = 2.0;
 
   private final ImageView topPipe;

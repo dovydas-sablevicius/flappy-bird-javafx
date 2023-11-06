@@ -9,8 +9,6 @@ import javafx.scene.layout.Pane;
 
 public class Bird extends GameObject {
 
-  private static final int BIRD_WIDTH = 65;
-  private static final int BIRD_HEIGHT = 45;
   private static final double GRAVITY = 0.3;
   private static final double FLAP_STRENGTH = -8.0;
   private static final int BIRD_X_OFFSET_FROM_CENTER = 35;
@@ -27,6 +25,9 @@ public class Bird extends GameObject {
 
   private double lastFlapTime;
   private double birdVelocity;
+
+  protected static final int BIRD_WIDTH = 62;
+  protected static final int BIRD_HEIGHT = 42;
 
   public Bird() {
     birdImages[0] = new Image("images/bird1.png");

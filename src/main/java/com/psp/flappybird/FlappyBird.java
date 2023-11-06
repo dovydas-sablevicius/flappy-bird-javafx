@@ -35,6 +35,7 @@ public class FlappyBird extends Application {
   private Floor floor1;
   private Floor floor2;
   private Bird bird;
+  private Score score;
 
   @Override
   public void start(Stage primaryStage) {
@@ -48,7 +49,7 @@ public class FlappyBird extends Application {
 
     Timeline timeline = new Timeline(new KeyFrame(Duration.millis(KEY_FRAME_DURATION), event -> {
       if (gameStarted) {
-        updateGameObjects(floor1, floor2, pipe1, pipe2, bird, frameCounter);
+        updateGameObjects(floor1, floor2, pipe1, pipe2, bird, score, frameCounter);
         frameCounter[0]++;
       }
 
@@ -69,15 +70,20 @@ public class FlappyBird extends Application {
     createPipes(root);
     createFloor(root);
     createBird(root);
+    createScore(root);
   }
 
   private void updateGameObjects(Floor floor1, Floor floor2, Pipe pipe1, Pipe pipe2, Bird bird,
+      Score score,
       int[] frameCounter) {
     updatePipes(pipe1, pipe2, frameCounter[0]);
     updateFloor(floor1, floor2, frameCounter[0]);
     updateBird(bird, frameCounter[0]);
+    updateScore(score, pipe1, pipe2, bird);
+
     endGameIfBirdCrashed(bird, pipe1, pipe2);
   }
+
 
   private void resetGame() {
     gameStarted = false;
@@ -86,6 +92,7 @@ public class FlappyBird extends Application {
     pipe2.reset(SECOND_PIPE_CORD_X);
     floor1.reset(FIRST_FLOOR_CORD_X);
     floor2.reset(SECOND_FLOOR_CORD_X);
+    score.reset(0);
   }
 
   private static void createBackground(Pane root) {
@@ -126,6 +133,11 @@ public class FlappyBird extends Application {
     bird.addToPane(root);
   }
 
+  private void createScore(Pane root) {
+    score = new Score();
+    score.addToPane(root);
+  }
+
   private void defineGameControls(Scene scene, Bird bird, int[] frameCounter) {
     scene.setOnMouseClicked(event -> {
       if (!gameStarted) {
@@ -160,6 +172,13 @@ public class FlappyBird extends Application {
 
     resetFloorIfOutOfScreen(floor1, floor2);
     resetFloorIfOutOfScreen(floor2, floor1);
+  }
+
+  private void updateScore(Score score, Pipe pipe1, Pipe pipe2, Bird bird) {
+    double birdX = bird.getBird().getX() + Bird.BIRD_WIDTH;
+    double pipe1X = pipe1.getTopPipe().getX();
+    double pipe2X = pipe2.getTopPipe().getX();
+    score.checkAndIncrementScore(birdX, pipe1X, pipe2X);
   }
 
   private void endGameIfBirdCrashed(Bird bird, Pipe pipe1, Pipe pipe2) {
